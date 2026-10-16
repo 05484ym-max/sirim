@@ -3,7 +3,7 @@
   "short_name": "שירים",
   "lang": "he",
   "dir": "rtl",
-  "start_url": "./",
+  "start_url": "/sirim/",
   "display": "standalone",
   "background_color": "#f1f1e5",
   "theme_color": "#163d20",
@@ -33,7 +33,7 @@
       "purpose": "any"
     }
   ],
-  "id": "./",
-  "scope": "./",
+  "id": "/sirim/",
+  "scope": "/sirim/",
   "orientation": "any"
 }
