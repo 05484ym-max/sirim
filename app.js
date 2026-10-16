@@ -97,8 +97,9 @@
   let songs = load('sirim.songs', null);
   if (!Array.isArray(songs) || !songs.length) songs = [SAMPLE];
   const prefs = Object.assign(
-    { font: 'Frank Ruhl Libre', size: 34, speed: 30, chords: true, light: false, current: songs[0].id, view: 'edit' },
+    { font: 'Frank Ruhl Libre', size: 34, speed: 30, chords: true, light: true, current: songs[0].id, view: 'edit' },
     load('sirim.prefs', {}));
+  if (prefs.palette !== 'green') { prefs.light = true; prefs.palette = 'green'; }
   if (!songs.some(s => s.id === prefs.current)) prefs.current = songs[0].id;
 
   const cur = () => songs.find(s => s.id === prefs.current);
@@ -444,7 +445,7 @@
   function setTheme(light) {
     prefs.light = light;
     document.documentElement.dataset.theme = light ? 'light' : 'dark';
-    $('meta[name=theme-color]').content = light ? '#f6f0e4' : '#16130f';
+    $('meta[name=theme-color]').content = light ? '#163d20' : '#0e2113';
     persistPrefs();
   }
 

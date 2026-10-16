@@ -1,15 +1,16 @@
 /* ───────── טוקנים ───────── */
 :root {
-  --bg: #15120e;
-  --bg-2: #1c1813;
-  --panel: #221d17;
-  --line: #342d24;
-  --ink: #f1e8d8;
-  --ink-2: #b7aa94;
-  --ink-3: #7e7362;
-  --accent: #e9a64a;
-  --accent-ink: #1b1308;
-  --chord: #f0b861;
+  --bg: #0e2113;
+  --bg-2: #163d20;
+  --panel: #1b4727;
+  --line: #2d5c39;
+  --ink: #f1f1e5;
+  --ink-2: #c7d1b8;
+  --ink-3: #8fa186;
+  --accent: #9ccb8f;
+  --accent-2: #163d20;
+  --accent-ink: #0e2113;
+  --chord: #a6dcae;
   --danger: #e2735a;
   --shadow: 0 18px 50px rgba(0, 0, 0, .45);
   --radius: 14px;
@@ -19,18 +20,19 @@
   color-scheme: dark;
 }
 :root[data-theme="light"] {
-  --bg: #f6f0e4;
-  --bg-2: #efe7d7;
-  --panel: #fffaf0;
-  --line: #ddd2bc;
-  --ink: #2a2218;
-  --ink-2: #6a5d49;
-  --ink-3: #9b8e78;
-  --accent: #b9701b;
-  --accent-ink: #fff8ea;
-  --chord: #b3600f;
+  --bg: #f1f1e5;
+  --bg-2: #e8ecdd;
+  --panel: #ffffff;
+  --line: #d6dbc6;
+  --ink: #1c1b16;
+  --ink-2: #55564d;
+  --ink-3: #8a8b86;
+  --accent: #4b6b44;
+  --accent-2: #163d20;
+  --accent-ink: #ffffff;
+  --chord: #338851;
   --danger: #b8442a;
-  --shadow: 0 18px 50px rgba(70, 50, 20, .18);
+  --shadow: 0 18px 50px rgba(22, 61, 32, .16);
   color-scheme: light;
 }
 
@@ -64,7 +66,7 @@ button { cursor: pointer; }
   width: 30px; height: 30px; border-radius: 9px;
   background:
     radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), transparent 40%),
-    linear-gradient(135deg, var(--accent), #c4561f);
+    linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: inset 0 -3px 6px rgba(0,0,0,.25);
 }
 .brand-name { font-family: "Frank Ruhl Libre", serif; font-weight: 700; font-size: 26px; letter-spacing: .5px; }
