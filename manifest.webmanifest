@@ -1,0 +1,11 @@
+{
+  "name": "שירים – מחברת שירים ואקורדים",
+  "short_name": "שירים",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#15120e",
+  "theme_color": "#16130f",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

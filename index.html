@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16130f">
+<title>שירים – מחברת שירים ואקורדים</title>
+<meta name="description" content="מחברת לכתיבת שירים והלחנות עם אקורדים, בחירת גופן וגלילה אוטומטית להופעה.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&family=Assistant:wght@300;400;600;700&family=Bellefair&family=David+Libre:wght@400;500;700&family=Frank+Ruhl+Libre:wght@300;400;500;700&family=Heebo:wght@300;400;500;700&family=Karantina:wght@300;400;700&family=Miriam+Libre:wght@400;700&family=Noto+Serif+Hebrew:wght@300;400;600;700&family=Playpen+Sans+Hebrew:wght@300;400;600&family=Rubik:wght@300;400;500;700&family=Secular+One&family=Suez+One&family=Varela+Round&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app" id="app" data-view="edit">
+
+  <!-- ספריית שירים -->
+  <aside class="library" id="library" aria-label="רשימת שירים">
+    <div class="lib-head">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">שירים</span></div>
+      <button class="btn primary" id="newSong" title="שיר חדש"><svg class="i"><use href="#i-plus"/></svg><span>שיר חדש</span></button>
+    </div>
+    <label class="search">
+      <svg class="i"><use href="#i-search"/></svg>
+      <input id="search" type="search" placeholder="חיפוש שיר…" autocomplete="off">
+    </label>
+    <ul class="song-list" id="songList"></ul>
+    <div class="lib-foot">
+      <button class="btn ghost small" id="exportBtn"><svg class="i"><use href="#i-download"/></svg><span>גיבוי</span></button>
+      <button class="btn ghost small" id="importBtn"><svg class="i"><use href="#i-upload"/></svg><span>שחזור</span></button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn only-mobile" id="menuBtn" aria-label="פתח רשימת שירים"><svg class="i"><use href="#i-menu"/></svg></button>
+      <div class="seg-switch" role="tablist" aria-label="מצב">
+        <button role="tab" id="tabEdit" data-view="edit"><svg class="i"><use href="#i-pen"/></svg><span>כתיבה</span></button>
+        <button role="tab" id="tabStage" data-view="stage"><svg class="i"><use href="#i-mic"/></svg><span>הופעה</span></button>
+      </div>
+      <div class="spacer"></div>
+      <button class="icon-btn" id="dupBtn" title="שכפל שיר" aria-label="שכפל שיר"><svg class="i"><use href="#i-copy"/></svg></button>
+      <button class="icon-btn danger" id="delBtn" title="מחק שיר" aria-label="מחק שיר"><svg class="i"><use href="#i-trash"/></svg></button>
+      <button class="btn aa" id="aaBtn" aria-haspopup="dialog" aria-expanded="false" title="גופן, גודל והגדרות"><span class="aa-glyph">Aa</span></button>
+    </header>
+
+    <!-- כתיבה -->
+    <section class="editor" id="editor" aria-label="עורך שיר">
+      <div class="editor-inner">
+        <input class="title-input" id="fTitle" placeholder="שם השיר" autocomplete="off">
+        <div class="meta-row">
+          <input id="fArtist" placeholder="מבצע / מלחין" autocomplete="off">
+          <label class="pill-field"><span>סולם</span>
+            <select id="fKey"></select>
+          </label>
+          <label class="pill-field"><span>קאפו</span>
+            <input id="fCapo" type="number" min="0" max="12" inputmode="numeric" placeholder="0">
+          </label>
+        </div>
+
+        <div class="chord-bar" aria-label="הוספת אקורד">
+          <div class="chord-bar-head">
+            <span class="chord-bar-title">אקורדים</span>
+            <span class="hint">לחץ על אקורד כדי להכניס אותו במקום הסמן</span>
+          </div>
+          <div class="chips" id="chordChips"></div>
+          <div class="chord-custom">
+            <input id="customChord" dir="ltr" placeholder="אחר: F#m7b5" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <button class="btn small" id="addCustom">הוסף</button>
+            <button class="btn small ghost" id="addSection" title="הוסף כותרת מקטע">+ מקטע</button>
+          </div>
+        </div>
+
+        <textarea id="fText" spellcheck="false" placeholder="כתוב כאן את המילים…&#10;&#10;# בית 1&#10;[Am]כאן מתחיל [F]השיר&#10;&#10;אקורד נכנס מעל המילה שאחריו:  [C]מילה"></textarea>
+        <div class="foot-note"><span id="saveState">נשמר</span><span>שורה שמתחילה ב־# היא כותרת מקטע</span></div>
+      </div>
+    </section>
+
+    <!-- הופעה -->
+    <section class="stage" id="stage" aria-label="תצוגת הופעה">
+      <div class="scroller" id="scroller">
+        <article class="song" id="songView"></article>
+      </div>
+      <div class="fade top"></div><div class="fade bottom"></div>
+      <div class="dock" id="dock">
+        <button class="play" id="playBtn" aria-label="התחל גלילה"><svg class="i"><use href="#i-play"/></svg></button>
+        <label class="slider speed">
+          <span class="lbl">מהירות גלילה <b id="speedVal"></b></span>
+          <input type="range" id="dockSpeed" min="1" max="100" step="1">
+        </label>
+        <label class="slider size">
+          <span class="lbl">גודל <b id="sizeVal"></b></span>
+          <input type="range" id="dockSize" min="16" max="84" step="1">
+        </label>
+        <button class="icon-btn" id="topBtn" title="חזרה להתחלה" aria-label="חזרה להתחלה"><svg class="i"><use href="#i-top"/></svg></button>
+      </div>
+    </section>
+  </main>
+
+  <!-- הגדרות תצוגה -->
+  <div class="sheet-wrap" id="sheetWrap" hidden>
+    <div class="sheet-scrim" id="sheetScrim"></div>
+    <div class="sheet" role="dialog" aria-label="הגדרות תצוגה" id="sheet">
+      <div class="sheet-grip"></div>
+      <h3>גופן</h3>
+      <div class="font-list" id="fontList" role="listbox"></div>
+
+      <h3>גודל גופן <b id="sizeVal2" class="num"></b></h3>
+      <input type="range" id="setSize" min="16" max="84" step="1">
+
+      <h3>מהירות גלילה אוטומטית <b id="speedVal2" class="num"></b></h3>
+      <input type="range" id="setSpeed" min="1" max="100" step="1">
+
+      <h3>העברת טון <b id="trVal" class="num" dir="ltr"></b></h3>
+      <div class="tr-row">
+        <button class="btn" id="trDown">−</button>
+        <button class="btn ghost" id="trReset">איפוס</button>
+        <button class="btn" id="trUp">+</button>
+        <button class="btn primary" id="trBake" title="שמור את האקורדים החדשים בשיר">הטמע בשיר</button>
+      </div>
+
+      <div class="toggle-row">
+        <label class="switch"><input type="checkbox" id="setChords"><span></span><em>הצג אקורדים</em></label>
+        <label class="switch"><input type="checkbox" id="setLight"><span></span><em>מצב בהיר</em></label>
+      </div>
+      <button class="btn wide" id="sheetClose">סגור</button>
+    </div>
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7.5 11 12 15.5 16.5 11M5 20h14"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V5M7.5 9 12 4.5 16.5 9M5 20h14"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="3.2"/></symbol>
+    <symbol id="i-top" viewBox="0 0 24 24"><path d="M5 5h14M12 20V9M7.5 13.5 12 9l4.5 4.5"/></symbol>
+  </defs>
+</svg>
+<script src="app.js"></script>
+</body>
+</html>
