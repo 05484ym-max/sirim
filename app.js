@@ -512,6 +512,7 @@
     const s = cur(), c = { ...s, id: uid(), title: (s.title || 'ללא שם') + ' (עותק)', updated: Date.now() };
     songs.push(c); persistSongs(); openSong(c.id);
   });
+  $('#dupBtn2').addEventListener('click', () => { toggleSheet(false); $('#dupBtn').click(); });
   $('#delBtn').addEventListener('click', () => {
     const s = cur();
     if (!confirm(`למחוק את "${s.title || 'ללא שם'}"? אי אפשר לשחזר.`)) return;
@@ -519,6 +520,12 @@
     if (!songs.length) songs.push({ id: uid(), title: '', artist: '', key: '', capo: '', text: '', transpose: 0, updated: Date.now() });
     persistSongs(); openSong([...songs].sort((a, b) => b.updated - a.updated)[0].id);
   });
+
+  /* ───────── הדפסה / שמירה כ-PDF ───────── */
+  let prevTitle = document.title;
+  window.addEventListener('beforeprint', () => { prevTitle = document.title; document.title = cur().title || 'שיר'; renderStage(); });
+  window.addEventListener('afterprint', () => { document.title = prevTitle; });
+  $('#printBtn').addEventListener('click', () => { stopScroll(); setTimeout(() => window.print(), 50); });
 
   /* ───────── גיבוי ושחזור ───────── */
   $('#exportBtn').addEventListener('click', () => {
