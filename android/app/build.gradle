@@ -1,0 +1,52 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.sirim.notebook'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.sirim.notebook'
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.13.0'
+}
+
+// Copy the *original* website and its existing icon into the APK.
+// Do not edit or move index.html, app.js, style.css, sw.js or any other web file.
+def website = rootProject.projectDir.parentFile
+tasks.register('syncWebsite', Copy) {
+    from(website) {
+        include 'index.html', 'app.js', 'style.css', 'sw.js'
+        include 'manifest.webmanifest', 'icon.svg', 'icon-180.png', 'icon-192.png', 'icon-512.png'
+    }
+    into(layout.projectDirectory.dir('src/main/assets/web'))
+}
+
+tasks.register('syncAppIcon', Copy) {
+    from(new File(website, 'icon-192.png'))
+    into(layout.projectDirectory.dir('src/main/res/drawable-nodpi'))
+    rename { 'sirim_icon.png' }
+}
+
+tasks.named('preBuild') {
+    dependsOn('syncWebsite', 'syncAppIcon')
+}
