@@ -220,9 +220,16 @@
 
   fKey.innerHTML = '<option value="">—</option>' + KEYS.map(k => `<option>${k}</option>`).join('');
 
-  $('#addSection').addEventListener('click', () => {
-    const atLineStart = fText.selectionStart === 0 || fText.value[fText.selectionStart - 1] === '\n';
-    fText.setRangeText((atLineStart ? '' : '\n') + '# ', fText.selectionStart, fText.selectionEnd, 'end');
+  // הוספת כותרת מקטע (# בית) בשורה חדשה במקום הסמן
+  $('#secChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-sec]'); if (!b) return;
+    const v = fText.value, at = fText.selectionStart ?? v.length;
+    const lineStart = v.lastIndexOf('\n', at - 1) + 1, lineEnd = v.indexOf('\n', at) === -1 ? v.length : v.indexOf('\n', at);
+    const onEmptyLine = !v.slice(lineStart, lineEnd).trim();
+    const pos = onEmptyLine ? lineStart : lineEnd;
+    const before = onEmptyLine ? (lineStart > 0 && v[lineStart - 2] !== '\n' && lineStart > 1 ? '\n' : '') : '\n\n';
+    const ins = `${before}# ${b.dataset.sec}\n`;
+    fText.setRangeText(ins, pos, onEmptyLine ? lineEnd : pos, 'end');
     fText.focus(); onTextInput();
   });
 
@@ -231,7 +238,7 @@
 
   function setEMode(m) {
     eMode = m;
-    $('#editor').dataset.emode = m;
+    $('#editor').dataset.emode = m; $('#secChips').hidden = m !== 'text';
     $$('[data-emode]').forEach(b => b.setAttribute('aria-selected', b.dataset.emode === m));
     fText.hidden = m !== 'text'; $('#chordPane').hidden = m !== 'chords';
     if (m === 'text') fText.value = lyricsOf(model); else { renderCanvas(); }

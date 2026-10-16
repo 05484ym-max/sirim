@@ -326,3 +326,8 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 .cv-chord.sel { background: var(--chord); color: var(--bg); box-shadow: 0 0 0 3px color-mix(in srgb, var(--chord) 35%, transparent); }
 .cv-chord.drag { cursor: grabbing; }
 .cv-empty { color: var(--ink-3); font-family: var(--font-ui); font-size: 15px; text-align: center; padding: 20px; }
+.sec-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.sec-chips[hidden] { display: none; }
+.sec-lbl { color: var(--ink-3); font-size: 14px; margin-inline-end: 4px; }
+.chip.sec { font-family: var(--font-ui); color: var(--accent); direction: rtl; min-width: 0; padding: 6px 14px; }
+.editor[data-emode="chords"] #addSection { display: none; }

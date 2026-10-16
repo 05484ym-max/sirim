@@ -70,7 +70,15 @@
         <div class="mode-tabs" role="tablist" aria-label="מצב עריכה">
           <button role="tab" data-emode="text" aria-selected="true">✎ מילים</button>
           <button role="tab" data-emode="chords" aria-selected="false">♪ אקורדים</button>
-          <button class="btn small ghost" id="addSection" title="הוסף כותרת מקטע">+ מקטע</button>
+        </div>
+        <div class="sec-chips" id="secChips" aria-label="הוספת מקטע">
+          <span class="sec-lbl">הוסף מקטע:</span>
+          <button class="chip sec" data-sec="פתיחה">פתיחה</button>
+          <button class="chip sec" data-sec="בית">בית</button>
+          <button class="chip sec" data-sec="פזמון">פזמון</button>
+          <button class="chip sec" data-sec="ברידג׳">ברידג׳</button>
+          <button class="chip sec" data-sec="סולו">סולו</button>
+          <button class="chip sec" data-sec="סיום">סיום</button>
         </div>
 
         <textarea id="fText" spellcheck="false" placeholder="כתוב כאן את המילים בלבד…&#10;&#10;# בית 1&#10;כאן מתחיל השיר&#10;&#10;את האקורדים מוסיפים בלשונית ״אקורדים״"></textarea>
