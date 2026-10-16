@@ -51,7 +51,7 @@ button { cursor: pointer; }
 .i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 /* ───────── מבנה ───────── */
-.app { display: grid; grid-template-columns: 320px 1fr; height: 100dvh; }
+.app { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: 100dvh; }
 
 .library {
   background: var(--bg-2);
@@ -266,7 +266,7 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 
 /* ───────── מובייל ───────── */
 @media (max-width: 860px) {
-  .app { grid-template-columns: 1fr; }
+  .app { grid-template-columns: minmax(0, 1fr); }
   .only-mobile { display: grid; }
   .library {
     position: fixed; inset-block: 0; inset-inline-start: 0; width: min(340px, 88vw); z-index: 20;
@@ -274,8 +274,12 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
   }
   .app.lib-open .library { transform: none; }
   .app.lib-open .scrim { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 15; }
-  .topbar { padding: 10px 10px; }
-  .seg-switch button { padding: 7px 12px; }
+  .topbar { padding: 10px 8px; gap: 2px; }
+  .seg-switch button { padding: 7px 10px; gap: 5px; }
+  .topbar .icon-btn { width: 36px; }
+  #dupBtn { display: none; }
+  #dupBtn2 { display: inline-flex; }
+  .aa { padding: 6px 11px; }
   .editor { padding: 18px 14px 50px; }
   .scroller { padding: 0 16px; }
   .dock { gap: 10px; padding: 9px 12px; margin-bottom: max(10px, env(safe-area-inset-bottom)); }
@@ -288,11 +292,6 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 }
 @media (min-width: 861px) { .scroller { padding: 0 40px; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
-@media print {
-  .library, .topbar, .dock, .fade, .editor, .sheet-wrap { display: none !important; }
-  .app { display: block; height: auto; } .stage { display: block !important; } .scroller { overflow: visible; }
-  body { background: #fff; color: #000; } .song { padding: 0; }
-}
 
 /* ───────── עורך אקורדים ───────── */
 .mode-tabs { display: flex; gap: 8px; align-items: center; }
@@ -333,3 +332,65 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 .sec-lbl { color: var(--ink-3); font-size: 14px; margin-inline-end: 4px; }
 .chip.sec { font-family: var(--font-ui); color: var(--accent); direction: rtl; min-width: 0; padding: 6px 14px; }
 .editor[data-emode="chords"] #addSection { display: none; }
+
+/* ───────── ליטוש עורך האקורדים ───────── */
+.editor-inner, .chord-pane, .chord-bar, .chord-canvas, .meta-row { min-width: 0; width: 100%; }
+.chips { max-width: 100%; }
+.editor-inner { gap: 14px; }
+.meta-row > input { flex: 1 1 100%; }
+.pill-field { flex: 1 1 140px; justify-content: space-between; }
+.pill-field select, .pill-field input { flex: 1; width: auto; text-align: end; }
+.mode-tabs { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 3px; gap: 3px; }
+.mode-tabs [data-emode] { flex: 1; background: transparent; border: 0; border-radius: 11px; padding: 9px 12px; }
+.mode-tabs [data-emode][aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+
+.chord-pane { gap: 12px; }
+.chord-bar {
+  position: sticky; top: -1px; z-index: 6; gap: 9px; padding: 10px 12px 9px;
+  background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(10px); border-radius: 16px; box-shadow: 0 6px 18px rgba(22, 61, 32, .08);
+}
+.chord-bar-head { display: none; }
+.chips { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 2px 1px 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; min-width: 0; padding: 7px 14px; font-size: 15px; font-weight: 500; background: var(--panel); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.chord-custom { flex-wrap: nowrap; }
+.chord-custom input { flex: 1; width: auto; min-width: 0; }
+.sel-row { border-top: 0; padding-top: 0; flex-wrap: wrap; }
+.sel-row #selInfo { font-size: 13px; min-width: 100%; order: -1; color: var(--ink-3); }
+.sel-row #selInfo b { font-weight: 600; }
+.sel-row .btn { flex: 1; }
+.chord-pane > .chord-canvas { margin-top: 0; }
+.chord-canvas { padding: 14px 18px 26px; background: var(--panel); }
+
+/* אקורדים מונחים: בלי מילוי, בלי מסגרת, משקל קל */
+.cv-chord {
+  background: none; border: 0; border-radius: 6px; padding: 0 3px; margin-top: 0;
+  font-weight: 500; font-size: .62em; color: var(--chord); letter-spacing: .01em;
+}
+.cv-chord::before { content: ""; position: absolute; inset: -8px -6px; }
+.cv-chord.sel { background: color-mix(in srgb, var(--chord) 16%, transparent); color: var(--chord); box-shadow: 0 0 0 1.5px var(--chord); }
+.cv-text { line-height: 2.4; }
+.seg .ch { font-weight: 500; }
+
+/* ───────── הדפסה / PDF – באותו עיצוב ───────── */
+@page { size: A4; margin: 16mm 14mm; }
+@media print {
+  :root, :root[data-theme] {
+    --bg: #ffffff; --bg-2: #e8ecdd; --panel: #ffffff; --line: #d6dbc6; --ink: #1c1b16; --ink-2: #55564d; --ink-3: #8a8b86;
+    --accent: #4b6b44; --accent-ink: #fff; --chord: #338851; color-scheme: light;
+  }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { height: auto !important; overflow: visible !important; background: var(--bg) !important; color: var(--ink); }
+  .library, .scrim, .topbar, .dock, .fade, .editor, .sheet-wrap { display: none !important; }
+  .app { display: block !important; height: auto !important; }
+  .main { display: block !important; }
+  .stage { display: block !important; }
+  .scroller { overflow: visible !important; height: auto !important; padding: 0 !important; }
+  .song { max-width: none; padding: 0 !important; font-size: 21px; }
+  .song-head { break-after: avoid; }
+  .ln, .sec { break-inside: avoid; }
+  .sec { break-after: avoid; }
+}
+
+#dupBtn2 { display: none; margin-top: 10px; }
