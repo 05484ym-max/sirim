@@ -144,7 +144,7 @@ button { cursor: pointer; }
 .meta-row > input:focus, .pill-field:focus-within { border-color: var(--accent); }
 
 .chord-bar { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
-.chord-bar-head { display: flex; align-items: baseline; gap: 12px; }
+.chord-bar-head { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; }
 .chord-bar-title { font-weight: 700; color: var(--chord); }
 .hint { color: var(--ink-3); font-size: 13px; }
 .chips { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -283,7 +283,6 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
   .sheet { margin: 0; width: 100%; max-height: 86dvh; border-radius: 22px 22px 0 0; animation: rise .22s ease-out; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
   @keyframes rise { from { transform: translateY(40px); opacity: 0; } }
   .sheet-grip { display: block; width: 42px; height: 4px; background: var(--line); border-radius: 4px; margin: -6px auto 14px; }
-  .hint { display: none; }
 }
 @media (min-width: 861px) { .scroller { padding: 0 40px; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -292,3 +291,38 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
   .app { display: block; height: auto; } .stage { display: block !important; } .scroller { overflow: visible; }
   body { background: #fff; color: #000; } .song { padding: 0; }
 }
+
+/* ───────── עורך אקורדים ───────── */
+.mode-tabs { display: flex; gap: 8px; align-items: center; }
+.mode-tabs [data-emode] { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 18px; color: var(--ink-2); font-weight: 500; }
+.mode-tabs [data-emode][aria-selected="true"] { background: var(--accent); border-color: transparent; color: var(--accent-ink); font-weight: 700; }
+.mode-tabs #addSection { margin-inline-start: auto; }
+.editor[data-emode="chords"] #addSection { display: none; }
+.chord-pane { display: flex; flex-direction: column; gap: 14px; }
+.chord-pane[hidden], #fText[hidden] { display: none; }
+.sel-row { display: flex; align-items: center; gap: 8px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.sel-row #selInfo { flex: 1; color: var(--ink-2); font-size: 14px; }
+.sel-row #selInfo b { color: var(--chord); font-family: "Rubik", sans-serif; direction: ltr; unicode-bidi: isolate; }
+.btn:disabled { opacity: .35; pointer-events: none; }
+.danger-t { color: var(--danger); }
+.chip.on { background: var(--chord); color: var(--bg); border-color: var(--chord); }
+
+.chord-canvas {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px 30px;
+  font-family: var(--font-song); font-size: clamp(18px, calc(var(--fs) * .62), 30px); user-select: none; -webkit-user-select: none;
+}
+.cv-line { position: relative; padding-top: .15em; }
+.cv-text { line-height: 2.55; white-space: pre-wrap; overflow-wrap: anywhere; cursor: crosshair; }
+.cv-text .cc { border-radius: 4px; }
+.cv-text .cc:hover { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+.cv-sec { font-family: var(--font-ui); font-size: .6em; font-weight: 700; letter-spacing: .08em; color: var(--accent); margin: 1.2em 0 .1em; }
+.cv-gap { height: .8em; }
+.cv-chord {
+  position: absolute; transform: translateY(-100%); touch-action: none; cursor: grab; z-index: 2;
+  font-family: "Rubik", sans-serif; font-weight: 600; font-size: .66em; line-height: 1.25; direction: ltr; unicode-bidi: isolate;
+  color: var(--chord); background: color-mix(in srgb, var(--chord) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--chord) 45%, transparent);
+  border-radius: 8px; padding: 1px 9px; white-space: pre; margin-top: .15em;
+}
+.cv-chord.sel { background: var(--chord); color: var(--bg); box-shadow: 0 0 0 3px color-mix(in srgb, var(--chord) 35%, transparent); }
+.cv-chord.drag { cursor: grabbing; }
+.cv-empty { color: var(--ink-3); font-family: var(--font-ui); font-size: 15px; text-align: center; padding: 20px; }

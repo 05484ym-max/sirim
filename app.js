@@ -5,6 +5,7 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } };
@@ -125,9 +126,9 @@
     prefs.current = id; persistPrefs();
     const s = cur();
     fTitle.value = s.title; fArtist.value = s.artist; fKey.value = s.key || ''; fCapo.value = s.capo || '';
-    fText.value = s.text;
+    model = parseSong(s.text); sel = null; fText.value = lyricsOf(model);
     s.transpose = 0;
-    renderChips(); renderStage(); renderList(); syncSheet();
+    renderChips(); renderStage(); renderList(); syncSheet(); setEMode(eMode);
     scroller.scrollTop = 0;
     app.classList.remove('lib-open');
   }
@@ -135,14 +136,64 @@
   function newSong() {
     const s = { id: uid(), title: '', artist: '', key: '', capo: '', text: '', transpose: 0, updated: Date.now() };
     songs.push(s); persistSongs();
-    openSong(s.id); setView('edit'); fTitle.focus();
+    openSong(s.id); setView('edit'); setEMode('text'); fTitle.focus();
+  }
+
+  /* ───────── מודל שיר: שורות עם אקורדים במיקום לפי אות ───────── */
+  // line = { t: טקסט, ch: [{ p: אינדקס אות, c: שם אקורד }] }. נשמר בדיסק בתור [Am]מילה.
+  let model = [], sel = null, activeChord = '', eMode = 'text';
+  const isSection = t => /^\s*#/.test(t);
+
+  function parseModelLine(raw) {
+    const line = { t: '', ch: [] };
+    if (isSection(raw)) { line.t = raw; return line; }
+    raw.split(/\[([^\]]*)\]/).forEach((part, i) => {
+      if (i % 2) { if (part.trim()) line.ch.push({ p: line.t.length, c: part.trim() }); } else line.t += part;
+    });
+    return line;
+  }
+  const parseSong = text => text.split('\n').map(parseModelLine);
+  const lyricsOf = m => m.map(l => l.t).join('\n');
+  function serialize(m) {
+    return m.map(l => {
+      if (!l.ch.length) return l.t;
+      const chords = l.ch.map((x, k) => ({ ...x, k })).sort((a, b) => a.p - b.p || a.k - b.k);
+      let out = '', at = 0;
+      chords.forEach(x => { const p = clamp(x.p, 0, l.t.length); out += l.t.slice(at, p) + `[${x.c}]`; at = p; });
+      return out + l.t.slice(at);
+    }).join('\n');
+  }
+
+  // מזיז אקורדים לפי השינוי בטקסט של שורה (השוואת תחילית/סיומת)
+  function adjustChords(ch, oldT, newT) {
+    if (oldT === newT || !ch.length) return ch;
+    const min = Math.min(oldT.length, newT.length);
+    let a = 0; while (a < min && oldT[a] === newT[a]) a++;
+    let b = 0; while (b < min - a && oldT[oldT.length - 1 - b] === newT[newT.length - 1 - b]) b++;
+    const delta = newT.length - oldT.length;
+    return ch.map(x => {
+      let p = x.p;
+      if (p > a) p = p >= oldT.length - b ? p + delta : a;
+      return { p: clamp(p, 0, newT.length), c: x.c };
+    });
+  }
+  // מעדכן את המודל לפי הטקסט החדש בתיבת הטקסט, ושומר אקורדים של שורות שלא נמחקו
+  function reconcile(old, texts) {
+    let i = 0; while (i < old.length && i < texts.length && old[i].t === texts[i]) i++;
+    let j = 0; while (j < old.length - i && j < texts.length - i && old[old.length - 1 - j].t === texts[texts.length - 1 - j]) j++;
+    const oMid = old.slice(i, old.length - j), nMid = texts.slice(i, texts.length - j);
+    return [
+      ...old.slice(0, i),
+      ...nMid.map((t, k) => (oMid[k] ? { t, ch: adjustChords(oMid[k].ch, oMid[k].t, t) } : { t, ch: [] })),
+      ...old.slice(old.length - j),
+    ];
   }
 
   /* ───────── עריכה ושמירה ───────── */
   let saveTimer;
   function markDirty() {
     const s = cur();
-    s.title = fTitle.value; s.artist = fArtist.value; s.key = fKey.value; s.capo = fCapo.value; s.text = fText.value;
+    s.title = fTitle.value; s.artist = fArtist.value; s.key = fKey.value; s.capo = fCapo.value; s.text = serialize(model);
     s.updated = Date.now();
     $('#saveState').textContent = 'שומר…'; $('#saveState').classList.add('dirty');
     clearTimeout(saveTimer);
@@ -151,33 +202,141 @@
       $('#saveState').textContent = 'נשמר'; $('#saveState').classList.remove('dirty');
     }, 350);
   }
-  [fTitle, fArtist, fCapo, fText].forEach(el => el.addEventListener('input', markDirty));
+  function onTextInput() {
+    model = reconcile(model, fText.value.split('\n'));
+    // מי שהקליד אקורד בסוגריים ידנית – נהפוך אותו לאקורד אמיתי מעל השורה
+    let converted = false;
+    model = model.map(l => {
+      if (isSection(l.t) || !/\[[^\]]+\]/.test(l.t)) return l;
+      const m = parseModelLine(l.t); converted = true;
+      return { t: m.t, ch: [...adjustChords(l.ch, l.t, m.t), ...m.ch] };
+    });
+    if (converted) fText.value = lyricsOf(model);
+    markDirty();
+  }
+  [fTitle, fArtist, fCapo].forEach(el => el.addEventListener('input', markDirty));
+  fText.addEventListener('input', onTextInput);
   fKey.addEventListener('change', () => { markDirty(); renderChips(); });
 
   fKey.innerHTML = '<option value="">—</option>' + KEYS.map(k => `<option>${k}</option>`).join('');
 
-  function renderChips() {
-    $('#chordChips').innerHTML = diatonic(fKey.value || 'C').map(c => `<button class="chip" data-chord="${c}">${c}</button>`).join('');
-  }
-
-  function insertAtCursor(str) {
-    const a = fText.selectionStart ?? fText.value.length, b = fText.selectionEnd ?? a;
-    fText.setRangeText(str, a, b, 'end');
-    fText.focus({ preventScroll: true });
-    markDirty();
-  }
-  $('#chordChips').addEventListener('click', e => {
-    const b = e.target.closest('[data-chord]'); if (b) insertAtCursor(`[${b.dataset.chord}]`);
+  $('#addSection').addEventListener('click', () => {
+    const atLineStart = fText.selectionStart === 0 || fText.value[fText.selectionStart - 1] === '\n';
+    fText.setRangeText((atLineStart ? '' : '\n') + '# ', fText.selectionStart, fText.selectionEnd, 'end');
+    fText.focus(); onTextInput();
   });
+
+  /* ───────── מצב אקורדים: הנחה וגרירה מעל השורה ───────── */
+  const canvas = $('#chordCanvas');
+
+  function setEMode(m) {
+    eMode = m;
+    $('#editor').dataset.emode = m;
+    $$('[data-emode]').forEach(b => b.setAttribute('aria-selected', b.dataset.emode === m));
+    fText.hidden = m !== 'text'; $('#chordPane').hidden = m !== 'chords';
+    if (m === 'text') fText.value = lyricsOf(model); else { renderCanvas(); }
+  }
+  $$('button[data-emode]').forEach(b => b.addEventListener('click', () => setEMode(b.dataset.emode)));
+
+  function renderChips() {
+    $('#chordChips').innerHTML = diatonic(fKey.value || 'C')
+      .map(c => `<button class="chip ${c === activeChord ? 'on' : ''}" data-chord="${c}">${c}</button>`).join('');
+  }
+  function setActive(c) { activeChord = c; renderChips(); updateSelInfo(); }
+  $('#chordChips').addEventListener('click', e => { const b = e.target.closest('[data-chord]'); if (b) setActive(b.dataset.chord); });
   function addCustom() {
     const v = $('#customChord').value.trim(); if (!v) return;
-    insertAtCursor(`[${v}]`); $('#customChord').value = '';
+    setActive(v); $('#customChord').value = '';
   }
   $('#addCustom').addEventListener('click', addCustom);
   $('#customChord').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } });
-  $('#addSection').addEventListener('click', () => {
-    const atLineStart = fText.selectionStart === 0 || fText.value[fText.selectionStart - 1] === '\n';
-    insertAtCursor((atLineStart ? '' : '\n') + '# ');
+
+  function updateSelInfo() {
+    const c = sel && model[sel.l]?.ch[sel.k];
+    $('#selInfo').innerHTML = c ? `אקורד נבחר: <b>${esc(c.c)}</b> — גרור כדי להזיז`
+      : activeChord ? `אקורד פעיל: <b>${esc(activeChord)}</b> — לחץ על אות כדי להניח` : 'בחר אקורד מהרשימה';
+    $('#chRename').disabled = $('#chDelete').disabled = !c;
+  }
+
+  function renderCanvas() {
+    if (!model.some(l => l.t.trim())) { canvas.innerHTML = '<div class="cv-empty">אין עדיין מילים. עבור ללשונית ״מילים״ וכתוב את השיר.</div>'; updateSelInfo(); return; }
+    canvas.innerHTML = model.map((l, li) => {
+      if (isSection(l.t)) return `<div class="cv-sec">${esc(l.t.replace(/^\s*#+\s*/, ''))}</div>`;
+      if (!l.t.trim() && !l.ch.length) return '<div class="cv-gap"></div>';
+      const chars = l.t.split('').map((c, i) => `<span class="cc" data-i="${i}">${esc(c)}</span>`).join('');
+      const chords = l.ch.map((x, k) => `<span class="cv-chord ${sel && sel.l === li && sel.k === k ? 'sel' : ''}" data-l="${li}" data-k="${k}">${esc(x.c)}</span>`).join('');
+      return `<div class="cv-line" data-l="${li}"><div class="cv-text">${chars}<span class="cc" data-i="${l.t.length}"> </span></div>${chords}</div>`;
+    }).join('');
+    layoutAll(); updateSelInfo();
+  }
+  function layoutLine(lineEl) {
+    const li = +lineEl.dataset.l, cont = lineEl.getBoundingClientRect();
+    lineEl.querySelectorAll('.cv-chord').forEach(el => {
+      const x = model[li].ch[+el.dataset.k]; if (!x) return;
+      const target = lineEl.querySelector(`.cc[data-i="${Math.min(x.p, model[li].t.length)}"]`);
+      const r = target.getBoundingClientRect();
+      el.style.right = (cont.right - r.right) + 'px';
+      el.style.top = (r.top - cont.top) + 'px';
+    });
+  }
+  const layoutAll = () => $$('.cv-line', canvas).forEach(layoutLine);
+  window.addEventListener('resize', () => eMode === 'chords' && layoutAll());
+  document.fonts?.ready.then(() => eMode === 'chords' && layoutAll());
+
+  function commitChords() { markDirty(); }
+
+  // הנחת אקורד חדש בלחיצה על אות
+  canvas.addEventListener('click', e => {
+    if (drag) return;
+    const cc = e.target.closest('.cc'); if (!cc) { if (!e.target.closest('.cv-chord')) { sel = null; renderCanvas(); } return; }
+    if (!activeChord) { $('#selInfo').textContent = 'קודם בחר אקורד מהרשימה למעלה'; return; }
+    const li = +cc.closest('.cv-line').dataset.l, line = model[li];
+    line.ch.push({ p: +cc.dataset.i, c: activeChord });
+    sel = { l: li, k: line.ch.length - 1 };
+    commitChords(); renderCanvas();
+  });
+
+  // גרירת אקורד למיקום אחר באותה שורה
+  let drag = null;
+  canvas.addEventListener('pointerdown', e => {
+    const el = e.target.closest('.cv-chord'); if (!el) return;
+    e.preventDefault();
+    const li = +el.dataset.l, k = +el.dataset.k;
+    drag = { el, li, k, moved: false, x0: e.clientX, line: el.closest('.cv-line') };
+    el.setPointerCapture(e.pointerId);
+    if (!sel || sel.l !== li || sel.k !== k) {
+      canvas.querySelectorAll('.cv-chord.sel').forEach(n => n.classList.remove('sel'));
+      el.classList.add('sel'); sel = { l: li, k };
+    }
+    activeChord = model[li].ch[k].c; renderChips(); updateSelInfo();
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag) return;
+    if (!drag.moved && Math.abs(e.clientX - drag.x0) < 5) return;
+    drag.moved = true; drag.el.classList.add('drag');
+    let best = 0, bestD = Infinity;
+    drag.line.querySelectorAll('.cc').forEach(c => {
+      const r = c.getBoundingClientRect(), d = Math.abs((r.left + r.right) / 2 - e.clientX);
+      if (d < bestD && e.clientY >= r.top - 60 && e.clientY <= r.bottom + 60) { bestD = d; best = +c.dataset.i; }
+    });
+    const x = model[drag.li].ch[drag.k];
+    if (x.p !== best) { x.p = best; layoutLine(drag.line); }
+  });
+  const endDrag = () => {
+    if (!drag) return;
+    const moved = drag.moved; drag.el.classList.remove('drag');
+    setTimeout(() => { drag = null; }, 0);
+    if (moved) commitChords();
+  };
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+
+  $('#chDelete').addEventListener('click', () => {
+    if (!sel) return; model[sel.l].ch.splice(sel.k, 1); sel = null; commitChords(); renderCanvas();
+  });
+  $('#chRename').addEventListener('click', () => {
+    const x = sel && model[sel.l].ch[sel.k]; if (!x) return;
+    const v = prompt('שם האקורד:', x.c); if (v && v.trim()) { x.c = v.trim(); commitChords(); renderCanvas(); }
   });
 
   /* ───────── תצוגת הופעה ───────── */
@@ -260,7 +419,6 @@
   });
 
   /* ───────── תצוגה: גופן, גודל, מהירות ───────── */
-  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const fill = el => el.style.setProperty('--p', ((el.value - el.min) / (el.max - el.min) * 100) + '%');
   const sliders = () => $$('input[type=range]');
 
