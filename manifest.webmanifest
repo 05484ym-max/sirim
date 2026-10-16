@@ -3,7 +3,7 @@
   "short_name": "שירים",
   "lang": "he",
   "dir": "rtl",
-  "start_url": "/sirim/",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#f1f1e5",
   "theme_color": "#163d20",
@@ -25,15 +25,9 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ],
-  "id": "/sirim/",
-  "scope": "/sirim/",
-  "orientation": "any"
+  "id": "index.html",
+  "scope": "./",
+  "orientation": "portrait"
 }
