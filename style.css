@@ -1,15 +1,16 @@
 /* ───────── טוקנים ───────── */
 :root {
-  --bg: #15120e;
-  --bg-2: #1c1813;
-  --panel: #221d17;
-  --line: #342d24;
-  --ink: #f1e8d8;
-  --ink-2: #b7aa94;
-  --ink-3: #7e7362;
-  --accent: #e9a64a;
-  --accent-ink: #1b1308;
-  --chord: #f0b861;
+  --bg: #0e2113;
+  --bg-2: #163d20;
+  --panel: #1b4727;
+  --line: #2d5c39;
+  --ink: #f1f1e5;
+  --ink-2: #c7d1b8;
+  --ink-3: #8fa186;
+  --accent: #9ccb8f;
+  --accent-2: #163d20;
+  --accent-ink: #0e2113;
+  --chord: #a6dcae;
   --danger: #e2735a;
   --shadow: 0 18px 50px rgba(0, 0, 0, .45);
   --radius: 14px;
@@ -19,18 +20,19 @@
   color-scheme: dark;
 }
 :root[data-theme="light"] {
-  --bg: #f6f0e4;
-  --bg-2: #efe7d7;
-  --panel: #fffaf0;
-  --line: #ddd2bc;
-  --ink: #2a2218;
-  --ink-2: #6a5d49;
-  --ink-3: #9b8e78;
-  --accent: #b9701b;
-  --accent-ink: #fff8ea;
-  --chord: #b3600f;
+  --bg: #f1f1e5;
+  --bg-2: #e8ecdd;
+  --panel: #ffffff;
+  --line: #d6dbc6;
+  --ink: #1c1b16;
+  --ink-2: #55564d;
+  --ink-3: #8a8b86;
+  --accent: #4b6b44;
+  --accent-2: #163d20;
+  --accent-ink: #ffffff;
+  --chord: #338851;
   --danger: #b8442a;
-  --shadow: 0 18px 50px rgba(70, 50, 20, .18);
+  --shadow: 0 18px 50px rgba(22, 61, 32, .16);
   color-scheme: light;
 }
 
@@ -64,7 +66,7 @@ button { cursor: pointer; }
   width: 30px; height: 30px; border-radius: 9px;
   background:
     radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), transparent 40%),
-    linear-gradient(135deg, var(--accent), #c4561f);
+    linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: inset 0 -3px 6px rgba(0,0,0,.25);
 }
 .brand-name { font-family: "Frank Ruhl Libre", serif; font-weight: 700; font-size: 26px; letter-spacing: .5px; }
@@ -144,7 +146,7 @@ button { cursor: pointer; }
 .meta-row > input:focus, .pill-field:focus-within { border-color: var(--accent); }
 
 .chord-bar { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
-.chord-bar-head { display: flex; align-items: baseline; gap: 12px; }
+.chord-bar-head { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; }
 .chord-bar-title { font-weight: 700; color: var(--chord); }
 .hint { color: var(--ink-3); font-size: 13px; }
 .chips { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -283,7 +285,6 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
   .sheet { margin: 0; width: 100%; max-height: 86dvh; border-radius: 22px 22px 0 0; animation: rise .22s ease-out; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
   @keyframes rise { from { transform: translateY(40px); opacity: 0; } }
   .sheet-grip { display: block; width: 42px; height: 4px; background: var(--line); border-radius: 4px; margin: -6px auto 14px; }
-  .hint { display: none; }
 }
 @media (min-width: 861px) { .scroller { padding: 0 40px; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -292,3 +293,43 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
   .app { display: block; height: auto; } .stage { display: block !important; } .scroller { overflow: visible; }
   body { background: #fff; color: #000; } .song { padding: 0; }
 }
+
+/* ───────── עורך אקורדים ───────── */
+.mode-tabs { display: flex; gap: 8px; align-items: center; }
+.mode-tabs [data-emode] { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 18px; color: var(--ink-2); font-weight: 500; }
+.mode-tabs [data-emode][aria-selected="true"] { background: var(--accent); border-color: transparent; color: var(--accent-ink); font-weight: 700; }
+.mode-tabs #addSection { margin-inline-start: auto; }
+.editor[data-emode="chords"] #addSection { display: none; }
+.chord-pane { display: flex; flex-direction: column; gap: 14px; }
+.chord-pane[hidden], #fText[hidden] { display: none; }
+.sel-row { display: flex; align-items: center; gap: 8px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.sel-row #selInfo { flex: 1; color: var(--ink-2); font-size: 14px; }
+.sel-row #selInfo b { color: var(--chord); font-family: "Rubik", sans-serif; direction: ltr; unicode-bidi: isolate; }
+.btn:disabled { opacity: .35; pointer-events: none; }
+.danger-t { color: var(--danger); }
+.chip.on { background: var(--chord); color: var(--bg); border-color: var(--chord); }
+
+.chord-canvas {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px 30px;
+  font-family: var(--font-song); font-size: clamp(18px, calc(var(--fs) * .62), 30px); user-select: none; -webkit-user-select: none;
+}
+.cv-line { position: relative; padding-top: .15em; }
+.cv-text { line-height: 2.55; white-space: pre-wrap; overflow-wrap: anywhere; cursor: crosshair; }
+.cv-text .cc { border-radius: 4px; }
+.cv-text .cc:hover { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+.cv-sec { font-family: var(--font-ui); font-size: .6em; font-weight: 700; letter-spacing: .08em; color: var(--accent); margin: 1.2em 0 .1em; }
+.cv-gap { height: .8em; }
+.cv-chord {
+  position: absolute; transform: translateY(-100%); touch-action: none; cursor: grab; z-index: 2;
+  font-family: "Rubik", sans-serif; font-weight: 600; font-size: .66em; line-height: 1.25; direction: ltr; unicode-bidi: isolate;
+  color: var(--chord); background: color-mix(in srgb, var(--chord) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--chord) 45%, transparent);
+  border-radius: 8px; padding: 1px 9px; white-space: pre; margin-top: .15em;
+}
+.cv-chord.sel { background: var(--chord); color: var(--bg); box-shadow: 0 0 0 3px color-mix(in srgb, var(--chord) 35%, transparent); }
+.cv-chord.drag { cursor: grabbing; }
+.cv-empty { color: var(--ink-3); font-family: var(--font-ui); font-size: 15px; text-align: center; padding: 20px; }
+.sec-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.sec-chips[hidden] { display: none; }
+.sec-lbl { color: var(--ink-3); font-size: 14px; margin-inline-end: 4px; }
+.chip.sec { font-family: var(--font-ui); color: var(--accent); direction: rtl; min-width: 0; padding: 6px 14px; }
+.editor[data-emode="chords"] #addSection { display: none; }

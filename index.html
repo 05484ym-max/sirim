@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#16130f">
+<meta name="theme-color" content="#163d20">
 <title>שירים – מחברת שירים ואקורדים</title>
 <meta name="description" content="מחברת לכתיבת שירים והלחנות עם אקורדים, בחירת גופן וגלילה אוטומטית להופעה.">
 <link rel="manifest" href="manifest.webmanifest">
@@ -67,20 +67,41 @@
           </label>
         </div>
 
-        <div class="chord-bar" aria-label="הוספת אקורד">
-          <div class="chord-bar-head">
-            <span class="chord-bar-title">אקורדים</span>
-            <span class="hint">לחץ על אקורד כדי להכניס אותו במקום הסמן</span>
-          </div>
-          <div class="chips" id="chordChips"></div>
-          <div class="chord-custom">
-            <input id="customChord" dir="ltr" placeholder="אחר: F#m7b5" autocomplete="off" autocapitalize="off" spellcheck="false">
-            <button class="btn small" id="addCustom">הוסף</button>
-            <button class="btn small ghost" id="addSection" title="הוסף כותרת מקטע">+ מקטע</button>
-          </div>
+        <div class="mode-tabs" role="tablist" aria-label="מצב עריכה">
+          <button role="tab" data-emode="text" aria-selected="true">✎ מילים</button>
+          <button role="tab" data-emode="chords" aria-selected="false">♪ אקורדים</button>
+        </div>
+        <div class="sec-chips" id="secChips" aria-label="הוספת מקטע">
+          <span class="sec-lbl">הוסף מקטע:</span>
+          <button class="chip sec" data-sec="פתיחה">פתיחה</button>
+          <button class="chip sec" data-sec="בית">בית</button>
+          <button class="chip sec" data-sec="פזמון">פזמון</button>
+          <button class="chip sec" data-sec="ברידג׳">ברידג׳</button>
+          <button class="chip sec" data-sec="סולו">סולו</button>
+          <button class="chip sec" data-sec="סיום">סיום</button>
         </div>
 
-        <textarea id="fText" spellcheck="false" placeholder="כתוב כאן את המילים…&#10;&#10;# בית 1&#10;[Am]כאן מתחיל [F]השיר&#10;&#10;אקורד נכנס מעל המילה שאחריו:  [C]מילה"></textarea>
+        <textarea id="fText" spellcheck="false" placeholder="כתוב כאן את המילים בלבד…&#10;&#10;# בית 1&#10;כאן מתחיל השיר&#10;&#10;את האקורדים מוסיפים בלשונית ״אקורדים״"></textarea>
+
+        <div class="chord-pane" id="chordPane" hidden>
+          <div class="chord-bar" aria-label="בחירת אקורד">
+            <div class="chord-bar-head">
+              <span class="chord-bar-title">1. בחר אקורד</span>
+              <span class="hint">2. לחץ על האות שמעליה הוא יופיע · גרור אקורד כדי להזיז</span>
+            </div>
+            <div class="chips" id="chordChips"></div>
+            <div class="chord-custom">
+              <input id="customChord" dir="ltr" placeholder="אחר: F#m7b5" autocomplete="off" autocapitalize="off" spellcheck="false">
+              <button class="btn small" id="addCustom">בחר</button>
+            </div>
+            <div class="sel-row">
+              <span id="selInfo">לא נבחר אקורד</span>
+              <button class="btn small ghost" id="chRename" disabled>שנה שם</button>
+              <button class="btn small ghost danger-t" id="chDelete" disabled>מחק</button>
+            </div>
+          </div>
+          <div class="chord-canvas" id="chordCanvas"></div>
+        </div>
         <div class="foot-note"><span id="saveState">נשמר</span><span>שורה שמתחילה ב־# היא כותרת מקטע</span></div>
       </div>
     </section>
